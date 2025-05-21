@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react"
 import { CheckCircle, Upload } from "lucide-react"
-import axios from "axios"
 
 const AnimatedChart = ({ className = "" }) => {
   const canvasRef = useRef(null)
@@ -157,12 +156,13 @@ const Calculator = () => {
   const [investmentAmount, setInvestmentAmount] = useState(10000)
   const [sliderValue, setSliderValue] = useState(10000)
   const [activeDetailTab, setActiveDetailTab] = useState("summary")
-  const [showSection, setShowSection] = useState("investment")
-  const [investmentDuration, setInvestmentDuration] = useState(4)
+  const [showSection, setShowSection] = useState("investment") // "investment" or "duration"
+  const [investmentDuration, setInvestmentDuration] = useState(4) // 4 quarters = 1 year
   const [durationSliderValue, setDurationSliderValue] = useState(4)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [investmentStep, setInvestmentStep] = useState(1)
+  const [investmentStep, setInvestmentStep] = useState(1) // 1: Personal Details, 2: Investment Preferences, 3: Bank & KYC Details, 4: Success
   const [formData, setFormData] = useState({
+    // Personal Details
     fullName: "",
     dateOfBirth: "",
     panNumber: "",
@@ -172,11 +172,15 @@ const Calculator = () => {
     city: "",
     state: "",
     pinCode: "",
+
+    // Investment Preferences
     investmentPlan: "quarterly",
     investmentAmount: 10000,
     investmentTenure: "1 Year (4 Quarters)",
     nomineeName: "",
     relationship: "",
+
+    // Bank & KYC Details
     bankAccountNumber: "",
     confirmAccountNumber: "",
     ifscCode: "",
@@ -184,9 +188,8 @@ const Calculator = () => {
     idProof: null,
     addressProof: null,
   })
-  const [submissionStatus, setSubmissionStatus] = useState(null)
-  const [errorMessage, setErrorMessage] = useState("")
 
+  // Calculate returns based on 6% quarterly compounding
   const calculateReturns = (amount, quarters = 4) => {
     const quarterlyRate = 0.06
     let currentAmount = amount
@@ -206,6 +209,7 @@ const Calculator = () => {
     const profit = finalAmount - amount
     const returnPercentage = (profit / amount) * 100
 
+    // Tree family distribution
     const mukhyaShare = profit * 0.7
     const familyShare = profit * 0.3
     const perMember = profit * 0.06
@@ -286,56 +290,22 @@ const Calculator = () => {
     setInvestmentStep(investmentStep - 1)
   }
 
-  const handleSubmitInvestment = async () => {
-    try {
-      const formDataToSend = new FormData()
-      Object.keys(formData).forEach((key) => {
-        if (key === "idProof" || key === "addressProof") {
-          if (formData[key]) {
-            formDataToSend.append(key, formData[key])
-          }
-        } else {
-          formDataToSend.append(key, formData[key])
-        }
-      })
-
-      const response = await axios.post(
-        "http://localhost:8899/api/personal_details/personal-details",
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      )
-
-      if (response.status === 200 || response.status === 201) {
-        setSubmissionStatus("success")
-        setInvestmentStep(4)
-      } else {
-        setSubmissionStatus("error")
-        setErrorMessage("Failed to submit investment. Please try again.")
-      }
-    } catch (error) {
-      setSubmissionStatus("error")
-      setErrorMessage(error.response?.data?.message || "An error occurred while submitting. Please try again.")
-    }
+  const handleSubmitInvestment = () => {
+    setInvestmentStep(4)
   }
 
   const handleViewInvestments = () => {
+    // Reset to calculator view
     setActiveTab("calculate")
     setIsAuthenticated(false)
     setInvestmentStep(1)
-    setSubmissionStatus(null)
-    setErrorMessage("")
   }
 
   const handleReturnHome = () => {
+    // Reset to calculator view
     setActiveTab("calculate")
     setIsAuthenticated(false)
     setInvestmentStep(1)
-    setSubmissionStatus(null)
-    setErrorMessage("")
   }
 
   return (
@@ -345,23 +315,28 @@ const Calculator = () => {
         Calculate your potential returns with MSV Infotech's quarterly compounding investment model.
       </p>
 
+      {/* Tabs */}
       <div className="grid grid-cols-2 gap-0 mb-8 bg-gray-50 rounded-lg overflow-hidden">
         <button
-          className={`py-3 px-4 text-center ${activeTab === "calculate" ? "bg-white text-[#004d40] font-semibold" : "bg-gray-50 text-gray-600"}`}
+          className={`py-3 px-4 text-center ${activeTab === "calculate" ? "bg-white text-[#004d40] font-semibold" : "bg-gray-50 text-gray-600"
+            }`}
           onClick={() => setActiveTab("calculate")}
         >
           Calculate Returns
         </button>
         <button
-          className={`py-3 px-4 text-center ${activeTab === "start" ? "bg-white text-[#004d40] font-semibold" : "bg-gray-50 text-gray-600"}`}
+          className={`py-3 px-4 text-center ${activeTab === "start" ? "bg-white text-[#004d40] font-semibold" : "bg-gray-50 text-gray-600"
+            }`}
           onClick={() => setActiveTab("start")}
         >
           Start Investing
         </button>
       </div>
 
+      {/* Content based on active tab */}
       {activeTab === "calculate" ? (
         <div className="grid md:grid-cols-2 gap-6">
+          {/* Left Column - Calculator */}
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-xl font-bold text-[#004d40] mb-1">Calculate Your Returns</h2>
             <p className="text-sm text-gray-600 mb-6">
@@ -370,13 +345,15 @@ const Calculator = () => {
 
             <div className="grid grid-cols-2 gap-0 mb-8 bg-[#fafafa] rounded-lg overflow-hidden border border-gray-100">
               <button
-                className={`py-3 px-4 text-center font-semibold w-full ${showSection === "investment" ? "bg-[#fafafa] text-black" : "bg-white text-gray-500"}`}
+                className={`py-3 px-4 text-center font-semibold w-full ${showSection === "investment" ? "bg-[#fafafa] text-black" : "bg-white text-gray-500"
+                  }`}
                 onClick={() => setShowSection("investment")}
               >
                 Investment Amount
               </button>
               <button
-                className={`py-3 px-4 text-center font-semibold w-full ${showSection === "duration" ? "bg-[#fafafa] text-black" : "bg-white text-gray-500"}`}
+                className={`py-3 px-4 text-center font-semibold w-full ${showSection === "duration" ? "bg-[#fafafa] text-black" : "bg-white text-gray-500"
+                  }`}
                 onClick={() => setShowSection("duration")}
               >
                 Duration
@@ -395,29 +372,30 @@ const Calculator = () => {
 
                 <div className="flex flex-wrap gap-2 mb-6">
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 10000 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
+                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 10000 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
                     onClick={() => handleAmountButtonClick(10000)}
                   >
                     ₹10,000
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 50000 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
-                    onClick={() => handleAmountButtonClick(50000)}
-                  >
+                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 50000 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
+                    onClick={() => handleAmountButtonClick(50000)}>
                     ₹50,000
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 100000 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
-                    onClick={() => handleAmountButtonClick(100000)}
-                  >
+                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 100000 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
+                    onClick={() => handleAmountButtonClick(100000)}>
                     ₹1 Lakh
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 1000000 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
-                    onClick={() => handleAmountButtonClick(1000000)}
-                  >
+                    className={`px-3 py-1 text-sm rounded-md ${investmentAmount === 1000000 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
+                    onClick={() => handleAmountButtonClick(1000000)}>
                     ₹10 Lakhs
-                  </button>
+                  </button> 
                 </div>
 
                 <div className="relative">
@@ -461,25 +439,29 @@ const Calculator = () => {
 
                 <div className="flex flex-wrap gap-2 mb-2">
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 4 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
+                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 4 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
                     onClick={() => handleDurationButtonClick(4)}
                   >
                     1 Year
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 8 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
+                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 8 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
                     onClick={() => handleDurationButtonClick(8)}
                   >
                     2 Years
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 12 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
+                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 12 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
                     onClick={() => handleDurationButtonClick(12)}
                   >
                     3 Years
                   </button>
                   <button
-                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 20 ? "bg-[#d4af37] text-white" : "border border-gray-300"}`}
+                    className={`px-3 py-1 text-sm rounded-md ${investmentDuration === 20 ? "bg-[#d4af37] text-white" : "border border-gray-300"
+                      }`}
                     onClick={() => handleDurationButtonClick(20)}
                   >
                     5 Years
@@ -496,19 +478,28 @@ const Calculator = () => {
 
               <div className="flex space-x-4 mb-4 border-b border-gray-200">
                 <button
-                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "summary" ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]" : "text-gray-500"}`}
+                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "summary"
+                      ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]"
+                      : "text-gray-500"
+                    }`}
                   onClick={() => setActiveDetailTab("summary")}
                 >
                   Summary
                 </button>
                 <button
-                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "details" ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]" : "text-gray-500"}`}
+                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "details"
+                      ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]"
+                      : "text-gray-500"
+                    }`}
                   onClick={() => setActiveDetailTab("details")}
                 >
                   Details
                 </button>
                 <button
-                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "chart" ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]" : "text-gray-500"}`}
+                  className={`pb-2 text-sm font-medium hover:text-[#d4af37] transition-colors ${activeDetailTab === "chart"
+                      ? "text-[#004d40] border-b-2 border-[#004d40] hover:border-[#d4af37]"
+                      : "text-gray-500"
+                    }`}
                   onClick={() => setActiveDetailTab("chart")}
                 >
                   <svg
@@ -645,6 +636,7 @@ const Calculator = () => {
             </div>
           </div>
 
+          {/* Right Column - How Returns Work */}
           <div className="bg-white p-6 rounded-lg border border-gray-200">
             <h2 className="text-xl font-bold text-[#004d40] mb-6">How Our Returns Work</h2>
 
@@ -679,7 +671,8 @@ const Calculator = () => {
               </ul>
             </div>
 
-            <div className="h-64 bg-gray-50 rounded-lg mb-6 relative overflow-hidden">
+            {/* Animated Chart */}
+            <div className="h-64  bg-gray-50 rounded-lg mb-6  relative overflow-hidden">
               <AnimatedChart className="absolute inset-0 -mt-4" />
             </div>
 
@@ -716,8 +709,10 @@ const Calculator = () => {
           </div>
         </div>
       ) : (
+        // Start Investing Tab Content
         <div>
           {!isAuthenticated ? (
+            // Authentication Required Section
             <div className="max-w-md mx-auto bg-white p-8 rounded-lg border border-gray-200 text-center">
               <h2 className="text-2xl font-bold mb-4">Authentication Required</h2>
               <p className="text-gray-600 mb-8">
@@ -728,7 +723,9 @@ const Calculator = () => {
               </button>
             </div>
           ) : (
+            // Investment Process
             <div className="max-w-3xl mx-auto bg-white rounded-lg border border-gray-200">
+              {/* Header with title */}
               <div className="p-6 pb-0">
                 <h2 className="text-2xl font-bold text-[#004d40] mb-2">Investment Calculator</h2>
                 <p className="text-gray-600 mb-4">
@@ -736,6 +733,7 @@ const Calculator = () => {
                 </p>
               </div>
 
+              {/* Tabs for the multi-step form */}
               <div className="px-6">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-0 mb-6 bg-gray-50 rounded-lg overflow-hidden">
                   <button
@@ -759,6 +757,7 @@ const Calculator = () => {
                 </div>
               </div>
 
+              {/* Form content based on current step */}
               {investmentStep === 1 && (
                 <div className="p-6 pt-0">
                   <h3 className="text-xl font-bold mb-6">Personal Details</h3>
@@ -939,9 +938,9 @@ const Calculator = () => {
                           Systematic Investment
                         </label>
                       </div>
-robot
                     </div>
                   </div>
+
                   <div className="mb-6">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Investment Amount (₹)</label>
                     <input
@@ -1042,12 +1041,6 @@ robot
                 <div className="p-6 pt-0">
                   <h3 className="text-xl font-bold mb-6">Bank & KYC Details</h3>
 
-                  {errorMessage && (
-                    <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-md">
-                      {errorMessage}
-                    </div>
-                  )}
-
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Bank Account Number</label>
                     <input
@@ -1132,9 +1125,6 @@ robot
                         Upload ID Proof
                       </label>
                     </div>
-                    {formData.idProof && (
-                      <p className="text-sm text-gray-600 mt-2">Uploaded: {formData.idProof.name}</p>
-                    )}
                   </div>
 
                   <div className="mb-6">
@@ -1155,9 +1145,6 @@ robot
                         Upload Address Proof
                       </label>
                     </div>
-                    {formData.addressProof && (
-                      <p className="text-sm text-gray-600 mt-2">Uploaded: {formData.addressProof.name}</p>
-                    )}
                   </div>
 
                   <div className="flex justify-between">
@@ -1203,47 +1190,18 @@ robot
 
               {investmentStep === 4 && (
                 <div className="p-6 pt-0 text-center">
-                  {submissionStatus === "success" ? (
-                    <>
-                      <div className="flex justify-center my-8">
-                        <div className="bg-green-100 rounded-full p-4">
-                          <CheckCircle className="h-12 w-12 text-green-500" />
-                        </div>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Investment Submitted Successfully!</h3>
-                      <p className="text-gray-600 mb-8">
-                        Your investment request has been received. Our team will review your application and contact you
-                        shortly.
-                      </p>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex justify-center my-8">
-                        <div className="bg-red-100 rounded-full p-4">
-                          <svg
-                            className="h-12 w-12 text-red-500"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        </div>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-4">Submission Failed</h3>
-                      <p className="text-gray-600 mb-8">{errorMessage}</p>
-                    </>
-                  )}
+                  <div className="flex justify-center my-8">
+                    <div className="bg-green-100 rounded-full p-4">
+                      <CheckCircle className="h-12 w-12 text-green-500" />
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Investment Submitted Successfully!</h3>
+                  <p className="text-gray-600 mb-8">
+                    Your investment request has been received. Our team will review your application and contact you
+                    shortly.
+                  </p>
                   <div className="flex justify-center gap-4">
-                    <button
-                      className="bg-[#004d40] text-white px-4 py-2 rounded-md"
-                      onClick={handleViewInvestments}
-                    >
+                    <button className="bg-[#004d40] text-white px-4 py-2 rounded-md" onClick={handleViewInvestments}>
                       View My Investments
                     </button>
                     <button

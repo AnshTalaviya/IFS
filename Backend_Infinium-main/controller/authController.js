@@ -43,21 +43,21 @@ exports.register = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // const otp = generateOTP();
-    // const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     const newUser = await User.create({
       fullName,
       email,
       password: hashedPassword,
-      // otp,
-      // otpExpiry,
+      otp,
+      otpExpiry,
     });
 
     // Send OTP email
-    // await sendOTPEmail(email, otp);
+    await sendOTPEmail(email, otp);
 
-    // res.status(201).json({ msg: "User registered and OTP sent" });
+    res.status(201).json({ msg: "User registered and OTP sent" });
   } catch (err) {
     res.status(500).json({ msg: "Server error" });
   }

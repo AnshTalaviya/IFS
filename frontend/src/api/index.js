@@ -2,7 +2,7 @@ import axios from "axios"
 
 // Create axios instance with base URL
 const api = axios.create({
-  baseURL: "http://localhost:8899",
+  baseURL: "https://ifs-backend.onrender.com",
   headers: {
     "Content-Type": "application/json",
   },
